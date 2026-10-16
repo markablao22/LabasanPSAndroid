@@ -35,7 +35,7 @@
   th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { width:20%; }
   th:nth-child(4), td:nth-child(4) { width:25%; }
   th:nth-child(5), td:nth-child(5) { width:18%; }
-  input, select { width:100%; min-width:0; border:0; background:transparent; font:inherit; text-align:center; padding:1px; }
+  input, select { width:100%; min-width:0; border:0; background:transparent; font:inherit; text-align:center; padding:1px; text-transform:uppercase; }
   .time-select { font-weight:bold; }
   @media print {
     body { margin:0; }
@@ -103,9 +103,14 @@ function makeRow(data=["","","","",""]) {
       td.appendChild(select);
     } else {
       const input=document.createElement("input");
-      input.value=value;
+      input.value=String(value ?? "").toUpperCase();
       input.setAttribute("aria-label", ["","Land","Lake","Remarks","WC"][i]);
-      input.addEventListener("input", scheduleSave);
+      input.addEventListener("input", () => {
+        const start=input.selectionStart, end=input.selectionEnd;
+        const upper=input.value.toUpperCase();
+        if(input.value !== upper){ input.value=upper; try { input.setSelectionRange(start,end); } catch(e) {} }
+        scheduleSave();
+      });
       td.appendChild(input);
     }
     tr.appendChild(td);
