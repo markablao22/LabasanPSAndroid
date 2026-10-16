@@ -49,7 +49,7 @@
 <div class="sheet">
   <div class="date-row">
     <label for="reportDate">DATE:</label>
-    <input id="reportDate" type="date" aria-label="Petsa" value="2026-10-16" onchange="updateDayName(); scheduleSave()">
+    <input id="reportDate" type="date" aria-label="Petsa" value="2026-01-01" onchange="updateDayName(); scheduleSave()">
     <span id="dayName" aria-live="polite">Friday</span>
     <span id="monthName" aria-live="polite">October</span>
   </div>
@@ -116,7 +116,7 @@ function resetRows(){
   times.forEach((t)=>addRow([t,"","","",""]));
   scheduleSave();
 }
-const SAVE_KEY = "labasan_ps_water_elevation_v1";
+const SAVE_KEY = "labasan_ps_water_elevation_v2";
 let saveTimer = null;
 function collectReport(){
   return {
