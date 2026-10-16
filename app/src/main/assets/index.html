@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labasan PS Water Elevation</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14532d">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; margin: 18px; color: #111; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin: 0 auto 14px; max-width: 900px; }
+  button { padding:9px 13px; border:1px solid #555; border-radius:4px; background:#f3f3f3; cursor:pointer; }
+  .sheet { max-width:900px; margin:auto; }
+  .date-row { border:2px solid #111; padding:4px 7px; font-weight:bold; display:flex; align-items:center; gap:8px; }
+  .date-row label { white-space:nowrap; }
+  #reportDate { font:inherit; font-weight:bold; border:0; background:transparent; min-width:0; }
+  #dayName, #monthName { white-space:nowrap; margin-left:4px; font-weight:bold; }
+  .report-title { border-left:2px solid #111; border-right:2px solid #111; border-bottom:2px solid #111; text-align:center; font-weight:bold; padding:4px; }
+  table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  th, td { border:1.5px solid #111; padding:4px 3px; text-align:center; height:25px; font-size:14px; }
+  th { font-weight:normal; }
+  th:first-child, td:first-child { width:17%; }
+  th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3) { width:20%; }
+  th:nth-child(4), td:nth-child(4) { width:25%; }
+  th:nth-child(5), td:nth-child(5) { width:18%; }
+  input, select { width:100%; min-width:0; border:0; background:transparent; font:inherit; text-align:center; padding:1px; }
+  .time-select { font-weight:bold; }
+  @media print {
+    body { margin:0; }
+    .toolbar { display:none; }
+    .sheet { max-width:none; }
+    input, select { appearance:none; }
+    #reportDate { appearance:none; }
+    th, td { height:24px; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button onclick="setToday()">Gamitin ang petsa ngayon</button>
+  <button onclick="addRow()">Magdagdag ng row</button>
+  <button onclick="removeRow()">Bawasan ng row</button>
+  <button onclick="resetRows()">Ibalik ang 24 oras</button>
+  <button onclick="saveAsImage()">Save as Image (PNG)</button>
+  <button onclick="takeScreenshot()">Screen Shot</button>
+  <button onclick="window.print()">I-print / Save as PDF</button>
+</div>
+<div class="sheet">
+  <div class="date-row">
+    <label for="reportDate">DATE:</label>
+    <input id="reportDate" type="date" aria-label="Petsa" value="2026-10-16" onchange="updateDayName()">
+    <span id="dayName" aria-live="polite">Friday</span>
+    <span id="monthName" aria-live="polite">October</span>
+  </div>
+  <div class="report-title">Labasan PS Water Elevation</div>
+  <table>
+    <thead><tr><th>TIME</th><th>LAND</th><th>LAKE</th><th>REMARKS</th><th>WC</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</div>
+<script>
+const times = ["12MN","1AM","2AM","3AM","4AM","5AM","6AM","7AM","8AM","9AM","10AM","11AM",
+               "12NN","1PM","2PM","3PM","4PM","5PM","6PM","7PM","8PM","9PM","10PM","11PM"];
+const defaultData = [
+ ["12MN","11.35","12.30","FGC","C"],
+ ["1AM","11.37","12.30","FGC","C"],
+ ["2AM","11.38","12.30","FGC","C"],
+ ["3AM","11.40","12.30","FGC","C"],
+ ["4AM","11.41","12.30","FGC","C"],
+ ["5AM","11.43","12.30","FGC","C"],
+ ["6AM","11.44","12.30","FGC","C"],
+ ["7AM","11.45","12.30","FGC","C"]
+];
+function makeRow(data=["","","","",""]) {
+  const tr=document.createElement("tr");
+  data.forEach((value,i)=>{
+    const td=document.createElement("td");
+    if(i===0){
+      const select=document.createElement("select");
+      select.className="time-select";
+      select.setAttribute("aria-label","Time");
+      times.forEach(t=>{
+        const option=document.createElement("option");
+        option.value=t; option.textContent=t;
+        select.appendChild(option);
+      });
+      if(times.includes(value)) select.value=value;
+      td.appendChild(select);
+    } else {
+      const input=document.createElement("input");
+      input.value=value;
+      input.setAttribute("aria-label", ["","Land","Lake","Remarks","WC"][i]);
+      td.appendChild(input);
+    }
+    tr.appendChild(td);
+  });
+  return tr;
+}
+function addRow(data) {
+  const tbody=document.getElementById("rows");
+  if(!data) {
+    const n=tbody.rows.length;
+    data=[times[n % times.length],"","","",""];
+  }
+  tbody.appendChild(makeRow(data));
+}
+function removeRow(){
+  const tbody=document.getElementById("rows");
+  if(tbody.rows.length > 0) tbody.deleteRow(tbody.rows.length - 1);
+}
+function resetRows(){
+  const tbody=document.getElementById("rows"); tbody.innerHTML="";
+  times.forEach((t)=>addRow([t,"","","",""]));
+}
+async function saveAsImage(filePrefix='Labasan_PS_Water_Elevation'){
+  const button = [...document.querySelectorAll('.toolbar button')].find(b => b.textContent.includes('Save as Image'));
+  const originalText = button ? button.textContent : '';
+  try {
+    if (button) { button.disabled = true; button.textContent = 'Ginagawa ang image...'; }
+    if (typeof window.html2canvas !== 'function') {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('Hindi ma-load ang image library. Kailangan ng internet connection.'));
+        document.head.appendChild(script);
+      });
+    }
+    const sheet = document.querySelector('.sheet');
+    const canvas = await window.html2canvas(sheet, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      onclone: (doc) => {
+        doc.querySelectorAll('.sheet input').forEach(input => {
+          if (input.type === 'date') input.setAttribute('value', input.value);
+          else input.setAttribute('value', input.value);
+        });
+        doc.querySelectorAll('.sheet select').forEach(select => {
+          const selected = select.options[select.selectedIndex];
+          if (selected) selected.setAttribute('selected', 'selected');
+        });
+      }
+    });
+    const date = document.getElementById('reportDate').value || 'report';
+    const link = document.createElement('a');
+    link.download = `${filePrefix}_${date}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    alert('Hindi na-save ang image. ' + (err.message || 'Subukan ulit.'));
+  } finally {
+    if (button) { button.disabled = false; button.textContent = originalText; }
+  }
+}
+function takeScreenshot(){
+  saveAsImage('Screenshot_Labasan_PS_Water_Elevation');
+}
+function updateDayName(){
+  const dateValue = document.getElementById('reportDate').value;
+  const dayName = document.getElementById('dayName');
+  const monthName = document.getElementById('monthName');
+  if (!dateValue) { dayName.textContent = ''; monthName.textContent = ''; return; }
+  const d = new Date(dateValue + 'T12:00:00');
+  dayName.textContent = d.toLocaleDateString('en-US', { weekday: 'long' });
+  monthName.textContent = d.toLocaleDateString('en-US', { month: 'long' });
+}
+function setToday(){
+  const d=new Date();
+  const localDate = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  document.getElementById("reportDate").value=localDate;
+  updateDayName();
+}
+updateDayName();
+defaultData.forEach(row=>addRow(row));
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
