@@ -139,18 +139,33 @@ function collectReport(){
     )
   };
 }
+function persistReport(showStatus=true){
+  const report = collectReport();
+  const key = SAVE_KEY + "_" + (report.date || "no-date");
+  localStorage.setItem(key, JSON.stringify(report));
+  if(showStatus){
+    const status = document.getElementById("saveStatus");
+    if(status) status.textContent = "✓ Awtomatikong naka-save ang report para sa " + (report.date || "petsa na walang laman") + ".";
+  }
+}
 function scheduleSave(){
   const status = document.getElementById("saveStatus");
-  if(status) status.textContent = "May pagbabago — pindutin ang SAVE REPORT para i-save.";
+  if(status) status.textContent = "Sine-save ang pagbabago...";
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { persistReport(true); }
+    catch(e) {
+      if(status) status.textContent = "Hindi na-save — pindutin ang SAVE REPORT at subukan muli.";
+    }
+  }, 500);
 }
 function saveReportNow(){
   try {
-    const report = collectReport();
-    const key = SAVE_KEY + "_" + (report.date || "no-date");
-    localStorage.setItem(key, JSON.stringify(report));
-    const status = document.getElementById("saveStatus");
-    if(status) status.textContent = "✓ Naka-save na ang report para sa " + (report.date || "petsa na walang laman") + ".";
+    if(saveTimer) clearTimeout(saveTimer);
+    persistReport(true);
   } catch(e) {
+    const status = document.getElementById("saveStatus");
+    if(status) status.textContent = "Hindi na-save ang report. Pakisubukang muli.";
     alert("Hindi na-save ang report. Pakisubukang muli.");
   }
 }
@@ -205,7 +220,7 @@ function setToday(){
 }
 document.getElementById("reportDate").addEventListener("change", loadReportForDate);
 loadReportForDate();
-window.addEventListener("pagehide", () => {});
+window.addEventListener("pagehide", () => { try { if(saveTimer) clearTimeout(saveTimer); persistReport(false); } catch(e) {} });
 async function saveAsImage(filePrefix='Labasan_PS_Water_Elevation'){
   const button = [...document.querySelectorAll('.toolbar button')].find(b => b.textContent.includes('Save as Image'));
   const originalText = button ? button.textContent : '';
