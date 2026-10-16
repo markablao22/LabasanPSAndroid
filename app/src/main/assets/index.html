@@ -41,7 +41,9 @@
 </head>
 <body>
 <div class="toolbar">
-  <button class="save-button" onclick="saveReportNow()">💾 SAVE REPORT</button>\n  <span id="saveStatus" aria-live="polite">Hindi pa naka-save ang report na ito.</span>\n  <button onclick="setToday()">Gamitin ang petsa ngayon</button>
+  <button class="save-button" onclick="saveReportNow()">💾 SAVE REPORT</button>
+  <span id="saveStatus" aria-live="polite">Hindi pa naka-save ang report na ito.</span>
+  <button onclick="setToday()">Gamitin ang petsa ngayon</button>
   <button onclick="addRow(); scheduleSave()">Magdagdag ng row</button>
   <button onclick="removeRow(); scheduleSave()">Bawasan ng row</button>
   <button onclick="resetRows(); scheduleSave()">Ibalik ang 24 oras</button>
@@ -89,13 +91,15 @@ function makeRow(data=["","","","",""]) {
         select.appendChild(option);
       });
       if(times.includes(value)) select.value=value;
-      select.addEventListener("change", scheduleSave);\n      select.addEventListener("change", scheduleSave);
+      select.addEventListener("change", scheduleSave);
+      select.addEventListener("change", scheduleSave);
       td.appendChild(select);
     } else {
       const input=document.createElement("input");
       input.value=value;
       input.setAttribute("aria-label", ["","Land","Lake","Remarks","WC"][i]);
-      input.addEventListener("input", scheduleSave);\n      input.addEventListener("input", scheduleSave);
+      input.addEventListener("input", scheduleSave);
+      input.addEventListener("input", scheduleSave);
       td.appendChild(input);
     }
     tr.appendChild(td);
@@ -257,13 +261,9 @@ function setToday(){
   const d=new Date();
   const localDate = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
   document.getElementById("reportDate").value=localDate;
-  updateDayName();
+  loadReportForDate();
 }
 updateDayName();
-if (!restoreReport()) {
-  times.forEach(t => addRow([t,"","","",""]));
-  saveReport();
-}
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
 }
