@@ -10,7 +10,10 @@
   * { box-sizing: border-box; }
   body { font-family: Arial, sans-serif; margin: 18px; color: #111; }
   .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin: 0 auto 14px; max-width: 900px; }
-  button { padding:9px 13px; border:1px solid #555; border-radius:4px; background:#f3f3f3; cursor:pointer; }
+  button { padding:10px 14px; border:1px solid #555; border-radius:8px; background:#f3f3f3; cursor:pointer; font-weight:600; }
+  .save-button { background:linear-gradient(135deg,#166534,#15803d); color:#fff; border:0; box-shadow:0 3px 8px rgba(22,101,52,.25); padding:11px 18px; letter-spacing:.3px; }
+  .save-button:active { transform:scale(.98); }
+  #saveStatus { width:100%; color:#166534; font-size:13px; font-weight:bold; padding:2px 4px; }
   .sheet { max-width:900px; margin:auto; }
   .date-row { border:2px solid #111; padding:4px 7px; font-weight:bold; display:flex; align-items:center; gap:8px; }
   .date-row label { white-space:nowrap; }
@@ -38,7 +41,7 @@
 </head>
 <body>
 <div class="toolbar">
-  <button onclick="setToday()">Gamitin ang petsa ngayon</button>
+  <button class="save-button" onclick="saveReportNow()">💾 SAVE REPORT</button>\n  <span id="saveStatus" aria-live="polite">Hindi pa naka-save ang report na ito.</span>\n  <button onclick="setToday()">Gamitin ang petsa ngayon</button>
   <button onclick="addRow(); scheduleSave()">Magdagdag ng row</button>
   <button onclick="removeRow(); scheduleSave()">Bawasan ng row</button>
   <button onclick="resetRows(); scheduleSave()">Ibalik ang 24 oras</button>
@@ -116,7 +119,7 @@ function resetRows(){
   times.forEach((t)=>addRow([t,"","","",""]));
   scheduleSave();
 }
-const SAVE_KEY = "labasan_ps_water_elevation_v2";
+const SAVE_KEY = "labasan_ps_water_elevation_manual_v1";
 let saveTimer = null;
 function collectReport(){
   return {
@@ -127,30 +130,72 @@ function collectReport(){
   };
 }
 function scheduleSave(){
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveReport, 250);
+  const status = document.getElementById("saveStatus");
+  if(status) status.textContent = "May pagbabago — pindutin ang SAVE REPORT para i-save.";
 }
-function saveReport(){
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(collectReport())); }
-  catch(e) { console.warn("Hindi ma-save ang report sa device", e); }
-}
-function restoreReport(){
+function saveReportNow(){
   try {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if(!saved) return false;
-    const report = JSON.parse(saved);
-    if(!report || !Array.isArray(report.rows) || !report.rows.length) return false;
-    document.getElementById("reportDate").value = report.date || document.getElementById("reportDate").value;
-    const tbody=document.getElementById("rows"); tbody.innerHTML="";
-    report.rows.forEach(row => addRow(row));
-    updateDayName();
-    return true;
-  } catch(e) { return false; }
+    const report = collectReport();
+    const key = SAVE_KEY + "_" + (report.date || "no-date");
+    localStorage.setItem(key, JSON.stringify(report));
+    const status = document.getElementById("saveStatus");
+    if(status) status.textContent = "✓ Naka-save na ang report para sa " + (report.date || "petsa na walang laman") + ".";
+  } catch(e) {
+    alert("Hindi na-save ang report. Pakisubukang muli.");
+  }
 }
-window.addEventListener("pagehide", saveReport);
-document.addEventListener("visibilitychange", () => {
-  if(document.visibilityState === "hidden") saveReport();
-});
+function collectReport(){
+  return {
+    date: document.getElementById("reportDate").value,
+    rows: [...document.querySelectorAll("#rows tr")].map(tr =>
+      [...tr.querySelectorAll("select,input")].map(el => el.value)
+    )
+  };
+}
+function resetRows(){
+  const tbody=document.getElementById("rows"); tbody.innerHTML="";
+  times.forEach((t)=>addRow([t,"","","",""]));
+  scheduleSave();
+}
+function loadReportForDate(){
+  const date = document.getElementById("reportDate").value;
+  const status = document.getElementById("saveStatus");
+  try {
+    const saved = localStorage.getItem(SAVE_KEY + "_" + (date || "no-date"));
+    const tbody=document.getElementById("rows");
+    tbody.innerHTML="";
+    if(saved){
+      const report=JSON.parse(saved);
+      if(Array.isArray(report.rows) && report.rows.length){
+        report.rows.forEach(row => addRow(row));
+        if(status) status.textContent = "✓ Na-load ang naka-save na report para sa " + date + ".";
+        updateDayName();
+        return;
+      }
+    }
+  } catch(e) {}
+  times.forEach(t => addRow([t,"","","",""]));
+  if(status) status.textContent = "Bagong blankong report. Pindutin ang SAVE REPORT kapag tapos na.";
+  updateDayName();
+}
+function updateDayName(){
+  const dateValue = document.getElementById('reportDate').value;
+  const dayName = document.getElementById('dayName');
+  const monthName = document.getElementById('monthName');
+  if (!dateValue) { dayName.textContent = ''; monthName.textContent = ''; return; }
+  const d = new Date(dateValue + 'T12:00:00');
+  dayName.textContent = d.toLocaleDateString('en-US', { weekday: 'long' });
+  monthName.textContent = d.toLocaleDateString('en-US', { month: 'long' });
+}
+function setToday(){
+  const d=new Date();
+  const localDate = new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  document.getElementById("reportDate").value=localDate;
+  loadReportForDate();
+}
+document.getElementById("reportDate").addEventListener("change", loadReportForDate);
+loadReportForDate();
+window.addEventListener("pagehide", () => {});
 async function saveAsImage(filePrefix='Labasan_PS_Water_Elevation'){
   const button = [...document.querySelectorAll('.toolbar button')].find(b => b.textContent.includes('Save as Image'));
   const originalText = button ? button.textContent : '';
