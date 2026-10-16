@@ -86,12 +86,14 @@ function makeRow(data=["","","","",""]) {
         select.appendChild(option);
       });
       if(times.includes(value)) select.value=value;
-      select.addEventListener("change", scheduleSave);\n      td.appendChild(select);
+      select.addEventListener("change", scheduleSave);\n      select.addEventListener("change", scheduleSave);
+      td.appendChild(select);
     } else {
       const input=document.createElement("input");
       input.value=value;
       input.setAttribute("aria-label", ["","Land","Lake","Remarks","WC"][i]);
-      input.addEventListener("input", scheduleSave);\n      td.appendChild(input);
+      input.addEventListener("input", scheduleSave);\n      input.addEventListener("input", scheduleSave);
+      td.appendChild(input);
     }
     tr.appendChild(td);
   });
@@ -112,7 +114,43 @@ function removeRow(){
 function resetRows(){
   const tbody=document.getElementById("rows"); tbody.innerHTML="";
   times.forEach((t)=>addRow([t,"","","",""]));
+  scheduleSave();
 }
+const SAVE_KEY = "labasan_ps_water_elevation_v1";
+let saveTimer = null;
+function collectReport(){
+  return {
+    date: document.getElementById("reportDate").value,
+    rows: [...document.querySelectorAll("#rows tr")].map(tr =>
+      [...tr.querySelectorAll("select,input")].map(el => el.value)
+    )
+  };
+}
+function scheduleSave(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveReport, 250);
+}
+function saveReport(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(collectReport())); }
+  catch(e) { console.warn("Hindi ma-save ang report sa device", e); }
+}
+function restoreReport(){
+  try {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if(!saved) return false;
+    const report = JSON.parse(saved);
+    if(!report || !Array.isArray(report.rows) || !report.rows.length) return false;
+    document.getElementById("reportDate").value = report.date || document.getElementById("reportDate").value;
+    const tbody=document.getElementById("rows"); tbody.innerHTML="";
+    report.rows.forEach(row => addRow(row));
+    updateDayName();
+    return true;
+  } catch(e) { return false; }
+}
+window.addEventListener("pagehide", saveReport);
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "hidden") saveReport();
+});
 async function saveAsImage(filePrefix='Labasan_PS_Water_Elevation'){
   const button = [...document.querySelectorAll('.toolbar button')].find(b => b.textContent.includes('Save as Image'));
   const originalText = button ? button.textContent : '';
@@ -177,7 +215,10 @@ function setToday(){
   updateDayName();
 }
 updateDayName();
-defaultData.forEach(row=>addRow(row));
+if (!restoreReport()) {
+  times.forEach(t => addRow([t,"","","",""]));
+  saveReport();
+}
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
 }
