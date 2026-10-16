@@ -155,7 +155,11 @@ async function saveAsImage(filePrefix='Labasan_PS_Water_Elevation'){
   }
 }
 function takeScreenshot(){
-  saveAsImage('Screenshot_Labasan_PS_Water_Elevation');
+  if (window.AndroidBridge && typeof window.AndroidBridge.saveScreenshot === 'function') {
+    window.AndroidBridge.saveScreenshot();
+  } else {
+    alert('Hindi available ang screenshot function. I-update ang app sa pinakabagong APK.');
+  }
 }
 function updateDayName(){
   const dateValue = document.getElementById('reportDate').value;
