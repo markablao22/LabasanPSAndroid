@@ -9,11 +9,19 @@
 <style>
   * { box-sizing: border-box; }
   body { font-family: Arial, sans-serif; margin: 18px; color: #111; }
-  .toolbar { display:flex; flex-wrap:wrap; gap:8px; margin: 0 auto 14px; max-width: 900px; }
-  button { padding:10px 14px; border:1px solid #555; border-radius:8px; background:#f3f3f3; cursor:pointer; font-weight:600; }
-  .save-button { background:linear-gradient(135deg,#166534,#15803d); color:#fff; border:0; box-shadow:0 3px 8px rgba(22,101,52,.25); padding:11px 18px; letter-spacing:.3px; }
-  .save-button:active { transform:scale(.98); }
-  #saveStatus { width:100%; color:#166534; font-size:13px; font-weight:bold; padding:2px 4px; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:10px; margin:0 auto 18px; max-width:900px; padding:14px; background:linear-gradient(135deg,#eff6ff,#f8fafc); border:1px solid #dbeafe; border-radius:16px; box-shadow:0 5px 18px rgba(15,23,42,.08); }
+  .toolbar button { flex:1 1 145px; min-height:46px; padding:11px 13px; border:0; border-radius:12px; cursor:pointer; font-weight:700; font-size:13px; line-height:1.25; color:#fff; box-shadow:0 3px 7px rgba(15,23,42,.14); transition:transform .12s ease, filter .12s ease; }
+  .toolbar button:active { transform:translateY(1px) scale(.98); filter:brightness(.94); }
+  .toolbar button:focus-visible { outline:3px solid #93c5fd; outline-offset:2px; }
+  .save-button { flex-basis:100% !important; background:linear-gradient(135deg,#166534,#22a447); font-size:15px !important; letter-spacing:.4px; box-shadow:0 4px 10px rgba(22,101,52,.25) !important; }
+  .date-button { background:linear-gradient(135deg,#1d4ed8,#3b82f6); }
+  .add-button { background:linear-gradient(135deg,#047857,#10b981); }
+  .remove-button { background:linear-gradient(135deg,#b45309,#f59e0b); }
+  .reset-button { background:linear-gradient(135deg,#b91c1c,#ef4444); }
+  .image-button { background:linear-gradient(135deg,#6d28d9,#8b5cf6); }
+  .screenshot-button { background:linear-gradient(135deg,#0e7490,#06b6d4); }
+  .print-button { background:linear-gradient(135deg,#334155,#64748b); }
+  #saveStatus { width:100%; color:#166534; font-size:13px; font-weight:bold; padding:8px 10px; background:#dcfce7; border-radius:8px; }
   .sheet { max-width:900px; margin:auto; }
   .date-row { border:2px solid #111; padding:4px 7px; font-weight:bold; display:flex; align-items:center; gap:8px; }
   .date-row label { white-space:nowrap; }
@@ -43,13 +51,13 @@
 <div class="toolbar">
   <button class="save-button" onclick="saveReportNow()">💾 SAVE REPORT</button>
   <span id="saveStatus" aria-live="polite">Hindi pa naka-save ang report na ito.</span>
-  <button onclick="setToday()">Gamitin ang petsa ngayon</button>
-  <button onclick="addRow(); scheduleSave()">Magdagdag ng row</button>
-  <button onclick="removeRow(); scheduleSave()">Bawasan ng row</button>
-  <button onclick="resetRows(); scheduleSave()">Ibalik ang 24 oras</button>
-  <button onclick="saveAsImage()">Save as Image (PNG)</button>
-  <button onclick="takeScreenshot()">Screen Shot</button>
-  <button onclick="window.print()">I-print / Save as PDF</button>
+  <button class="date-button" onclick="setToday()">📅 Gamitin ang petsa ngayon</button>
+  <button class="add-button" onclick="addRow(); scheduleSave()">➕ Magdagdag ng row</button>
+  <button class="remove-button" onclick="removeRow(); scheduleSave()">➖ Bawasan ng row</button>
+  <button class="reset-button" onclick="resetRows(); scheduleSave()">🔄 Ibalik ang 24 oras</button>
+  <button class="image-button" onclick="saveAsImage()">🖼️ Save as Image (PNG)</button>
+  <button class="screenshot-button" onclick="takeScreenshot()">📸 Screen Shot</button>
+  <button class="print-button" onclick="window.print()">🖨️ I-print / Save as PDF</button>
 </div>
 <div class="sheet">
   <div class="date-row">
@@ -92,13 +100,11 @@ function makeRow(data=["","","","",""]) {
       });
       if(times.includes(value)) select.value=value;
       select.addEventListener("change", scheduleSave);
-      select.addEventListener("change", scheduleSave);
       td.appendChild(select);
     } else {
       const input=document.createElement("input");
       input.value=value;
       input.setAttribute("aria-label", ["","Land","Lake","Remarks","WC"][i]);
-      input.addEventListener("input", scheduleSave);
       input.addEventListener("input", scheduleSave);
       td.appendChild(input);
     }
