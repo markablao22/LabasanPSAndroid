@@ -39,9 +39,9 @@
 <body>
 <div class="toolbar">
   <button onclick="setToday()">Gamitin ang petsa ngayon</button>
-  <button onclick="addRow()">Magdagdag ng row</button>
-  <button onclick="removeRow()">Bawasan ng row</button>
-  <button onclick="resetRows()">Ibalik ang 24 oras</button>
+  <button onclick="addRow(); scheduleSave()">Magdagdag ng row</button>
+  <button onclick="removeRow(); scheduleSave()">Bawasan ng row</button>
+  <button onclick="resetRows(); scheduleSave()">Ibalik ang 24 oras</button>
   <button onclick="saveAsImage()">Save as Image (PNG)</button>
   <button onclick="takeScreenshot()">Screen Shot</button>
   <button onclick="window.print()">I-print / Save as PDF</button>
@@ -49,7 +49,7 @@
 <div class="sheet">
   <div class="date-row">
     <label for="reportDate">DATE:</label>
-    <input id="reportDate" type="date" aria-label="Petsa" value="2026-10-16" onchange="updateDayName()">
+    <input id="reportDate" type="date" aria-label="Petsa" value="2026-10-16" onchange="updateDayName(); scheduleSave()">
     <span id="dayName" aria-live="polite">Friday</span>
     <span id="monthName" aria-live="polite">October</span>
   </div>
@@ -86,12 +86,12 @@ function makeRow(data=["","","","",""]) {
         select.appendChild(option);
       });
       if(times.includes(value)) select.value=value;
-      td.appendChild(select);
+      select.addEventListener("change", scheduleSave);\n      td.appendChild(select);
     } else {
       const input=document.createElement("input");
       input.value=value;
       input.setAttribute("aria-label", ["","Land","Lake","Remarks","WC"][i]);
-      td.appendChild(input);
+      input.addEventListener("input", scheduleSave);\n      td.appendChild(input);
     }
     tr.appendChild(td);
   });
