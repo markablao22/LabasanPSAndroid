@@ -6,4 +6,4 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = 'LabasanPSWaterElevation'
-include ':app'
+include ':app', ':meterapp'
