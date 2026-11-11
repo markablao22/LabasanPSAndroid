@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Labasan Pumping Station | Operations Management</title>
+<style>
+:root{--bg:#f3f6fb;--ink:#17243b;--muted:#66758c;--line:#e3e9f2;--blue:#1769aa;--green:#16845b;--amber:#b7791f;--red:#c24141}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(115deg,#0c2038,#174c78);color:white;padding:20px clamp(16px,4vw,42px);display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
+h1{font-size:18px;margin:0;letter-spacing:.04em}header p{font-size:11px;color:#c5d7e8;letter-spacing:.13em;margin:3px 0}
+nav{display:flex;gap:5px;padding:10px 4vw;background:white;border-bottom:1px solid var(--line);overflow:auto}nav button,.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}nav button{background:transparent;color:var(--muted);white-space:nowrap}nav button.active{background:#eaf3fb;color:#135b91}
+main{max-width:1300px;margin:auto;padding:24px clamp(12px,3vw,36px)}.page{display:none}.page.active{display:block}h2{font-size:22px;margin:0 0 5px}h3{font-size:15px;margin:0 0 12px}.sub{color:var(--muted);margin:0 0 18px}
+.grid{display:grid;gap:14px}.stats{grid-template-columns:repeat(4,minmax(0,1fr));margin:18px 0}.two{grid-template-columns:1.2fr .8fr}
+.card{background:white;border:1px solid var(--line);border-radius:14px;padding:17px;box-shadow:0 8px 24px #172b4d0d;min-width:0}
+.k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}.v{font-size:27px;font-weight:750;margin:6px 0}.muted{color:var(--muted);font-size:11px}
+label{display:block;font-size:12px;font-weight:650;color:#52627a;margin:0 0 5px}input,select{width:100%;padding:10px;border:1px solid #d7e0eb;border-radius:8px;background:white;font:inherit}.field{margin-bottom:12px}
+.btn{background:var(--blue);color:white}.btn.alt{background:#eaf1f8;color:#24445f}.btn.ghost{background:white;color:#52627a;border:1px solid var(--line)}.actions{display:flex;gap:8px;flex-wrap:wrap}
+.track{height:10px;background:#edf1f6;border-radius:20px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#3aa4cb,var(--blue));width:50%}.level{display:grid;grid-template-columns:100px 1fr 70px;align-items:center;gap:10px;margin:14px 0}
+.status{display:inline-block;border-radius:30px;padding:5px 9px;font-size:11px;font-weight:700;background:#e7f6ef;color:var(--green)}.off{background:#fff0f0;color:var(--red)}
+.alert{padding:13px;border-left:4px solid var(--blue);border-radius:8px;background:#edf6fc;margin:12px 0}.warn{border-color:var(--amber);background:#fff8e9}.notice{padding:12px;border:1px solid #f0dfb9;background:#fff8e9;color:#76551c;border-radius:9px;font-size:11px;margin:14px 0}
+.equip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.unit{border:1px solid var(--line);border-radius:9px;padding:12px}.unit strong{display:block;margin-bottom:7px}
+.log{display:grid;gap:8px}.logitem{border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px}.logitem small{display:block;color:var(--muted)}
+.flowwrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#f8fbfe;padding:12px}.flow{min-width:850px;max-width:1050px;margin:auto}.flow svg{width:100%;height:auto}.flow text{font:11px Segoe UI,Arial;fill:#1c3048}.node{fill:white;stroke:#7590aa;stroke-width:1.4}.decision{fill:#fff8e8;stroke:#c28b34;stroke-width:1.5}.start{fill:#e7f6ef;stroke:#16845b}.end{fill:#eaf3fb;stroke:#1769aa}.arrow{stroke:#617b94;stroke-width:1.4;fill:none;marker-end:url(#arr)}.yes{fill:#16845b!important;font-weight:bold}.no{fill:#b7791f!important;font-weight:bold}
+footer{text-align:center;color:#8290a2;font-size:11px;padding:20px}
+@media(max-width:850px){.stats{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.equip{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.card{padding:13px}.v{font-size:23px}.level{grid-template-columns:85px 1fr 60px}}
+</style></head>
+<body>
+<header><div><h1>LABASAN PUMPING STATION</h1><p>OPERATIONS MANAGEMENT SYSTEM</p></div><div>● SIMULATION MODE &nbsp; | &nbsp; <span id="clock"></span></div></header>
+<nav><button class="active" data-page="dashboard">Dashboard</button><button data-page="workflow">Operation Flowchart</button><button data-page="equipment">Equipment Status</button><button data-page="logs">Operation Logs</button></nav>
+<main>
+<section id="dashboard" class="page active"><h2>Operations Dashboard</h2><p class="sub">Monitor water elevations and review the reference operating sequence.</p>
+<div class="grid stats">
+<div class="card"><div class="k">Land Side Level</div><div class="v" id="landStat">11.75 m</div><div class="muted">Reference starting level</div></div>
+<div class="card"><div class="k">Lake Side Level</div><div class="v" id="lakeStat">12.50 m</div><div class="muted">Reference starting level</div></div>
+<div class="card"><div class="k">Pumps Running</div><div class="v" id="pumpStat">7 / 7</div><div class="muted">Submersible pumps</div></div>
+<div class="card"><div class="k">Generators Running</div><div class="v" id="genStat">4 / 4</div><div class="muted">Generator units</div></div></div>
+<div class="grid two"><div class="card"><h3>Water Elevation Monitoring</h3>
+<div class="level"><b>Land Side</b><div class="track"><div class="fill" id="landBar"></div></div><b id="landLevel">11.75 m</b></div>
+<div class="level"><b>Lake Side</b><div class="track"><div class="fill" id="lakeBar"></div></div><b id="lakeLevel">12.50 m</b></div>
+<div class="grid two"><div class="field"><label>Update Land Side (m)</label><input id="landInput" type="number" step=".01" value="11.75"></div><div class="field"><label>Update Lake Side (m)</label><input id="lakeInput" type="number" step=".01" value="12.50"></div></div>
+<div class="actions"><button class="btn" id="updateLevels">Update Readings</button><button class="btn alt" id="demoDrop">Simulate −0.10 m</button></div></div>
+<div class="card"><h3>Operating Conditions</h3><div class="field"><label>Weather</label><select id="weather"><option value="clear">No disturbance / no heavy downpour</option><option value="rain">Weather disturbance / heavy downpour</option></select></div>
+<div class="field"><label>Flood Gates</label><select id="gates"><option value="closed">Closed</option><option value="open">Open</option></select></div>
+<div class="field"><label>Discharge Valves</label><select id="valves"><option value="open">Open</option><option value="closed">Closed</option></select></div>
+<div id="conditionAlert" class="alert">Ready for simulated workflow evaluation.</div><button class="btn" id="evaluate">Evaluate Workflow</button></div></div>
+<div class="card" style="margin-top:14px"><h3>Workflow Recommendation</h3><div id="recommendation" class="alert">Update readings and evaluate the workflow to view a recommendation.</div><div class="actions"><button class="btn alt" id="applyStep">Apply to simulation indicators</button><button class="btn ghost" id="reset">Reset Simulation</button></div><p class="muted">Applying a recommendation changes simulated indicators only. It does not operate real equipment.</p></div></section>
+<section id="workflow" class="page"><h2>Enhanced Operation Flowchart</h2><p class="sub">Digital reference based on the uploaded station flowchart.</p><div class="notice">Verify all thresholds, branches, and shutdown instructions with the authorized station engineer before operational use.</div>
+<div class="flowwrap"><div class="flow"><svg viewBox="0 0 1000 680" role="img" aria-label="Pumping station operation flowchart"><defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#617b94"/></marker></defs>
+<ellipse class="start" cx="500" cy="30" rx="48" ry="20"/><text x="500" y="34" text-anchor="middle">START</text><path class="arrow" d="M500 50V75"/><rect class="node" x="390" y="75" width="220" height="48" rx="7"/><text x="500" y="95" text-anchor="middle"><tspan x="500">WATER ELEVATION</tspan><tspan x="500" dy="14">Land 11.75 m | Lake 12.50 m</tspan></text>
+<path class="arrow" d="M500 123V150"/><polygon class="decision" points="500,150 590,195 500,240 410,195"/><text x="500" y="191" text-anchor="middle"><tspan x="500">Are flood gates</tspan><tspan x="500" dy="14">open?</tspan></text>
+<path class="arrow" d="M410 195H220V260"/><text class="no" x="310" y="185">NO</text><rect class="node" x="130" y="260" width="180" height="48" rx="7"/><text x="220" y="280" text-anchor="middle"><tspan x="220">Operate generators</tspan><tspan x="220" dy="14">#1, #2, #3, #4</tspan></text>
+<path class="arrow" d="M590 195H780V260"/><text class="yes" x="670" y="185">YES</text><rect class="node" x="690" y="260" width="180" height="48" rx="7"/><text x="780" y="280" text-anchor="middle"><tspan x="780">Operate one generator</tspan><tspan x="780" dy="14">Close all flood gates</tspan></text>
+<path class="arrow" d="M780 308V335"/><rect class="node" x="690" y="335" width="180" height="48" rx="7"/><text x="780" y="355" text-anchor="middle"><tspan x="780">Operate other three</tspan><tspan x="780" dy="14">generators</tspan></text>
+<path class="arrow" d="M220 308V420H400"/><path class="arrow" d="M780 383V420H600"/><rect class="node" x="400" y="420" width="200" height="48" rx="7"/><text x="500" y="440" text-anchor="middle"><tspan x="500">Open all discharge valves</tspan><tspan x="500" dy="14">Operate pumps #1–#7</tspan></text>
+<path class="arrow" d="M600 444H930V115"/><polygon class="decision" points="930,70 990,105 930,140 870,105"/><text x="930" y="101" text-anchor="middle"><tspan x="930">Heavy</tspan><tspan x="930" dy="13">downpour?</tspan></text>
+<path class="arrow" d="M930 140V185"/><text class="yes" x="940" y="164">YES</text><rect class="node" x="835" y="185" width="150" height="52" rx="7"/><text x="910" y="205" text-anchor="middle"><tspan x="910">Continue pumping</tspan><tspan x="910" dy="14">until Land Side</tspan><tspan x="910" dy="14">10.50 m</tspan></text>
+<path class="arrow" d="M835 210H740V500"/><text class="no" x="800" y="198">NO / MONITOR</text>
+<polygon class="decision" points="740,500 810,535 740,570 670,535"/><text x="740" y="531" text-anchor="middle"><tspan x="740">Land ≤</tspan><tspan x="740" dy="13">11.65 m?</tspan></text>
+<path class="arrow" d="M670 535H590"/><text class="yes" x="620" y="525">YES</text><rect class="node" x="440" y="510" width="150" height="50" rx="7"/><text x="515" y="530" text-anchor="middle"><tspan x="515">Stop Pump #7</tspan><tspan x="515" dy="14">Generator #4 off</tspan></text>
+<path class="arrow" d="M740 570V610"/><text class="no" x="750" y="595">NO: CONTINUE</text><polygon class="decision" points="740,610 810,645 740,680 670,645"/><text x="740" y="641" text-anchor="middle"><tspan x="740">Next levels:</tspan><tspan x="740" dy="13">11.50 / 11.20 / 10.50</tspan></text>
+<text x="500" y="600" text-anchor="middle">Shutdown sequence continues: pumps #5–#6 / Gen #3;</text><text x="500" y="618" text-anchor="middle">pumps #3–#4 / Gen #2; pumps #1–#2 / Gen #1.</text>
+</svg></div></div></section>
+<section id="equipment" class="page"><h2>Equipment Status</h2><p class="sub">Simulation indicators for four generators and seven submersible pumps.</p><div class="card"><h3>Generators</h3><div class="equip" id="generators"></div></div><div class="card" style="margin-top:14px"><h3>Submersible Pumps</h3><div class="equip" id="pumps"></div></div><div class="notice">Simulation only. No PLC, SCADA, sensor, relay, motor starter, or field equipment is connected.</div></section>
+<section id="logs" class="page"><h2>Operation Logs</h2><p class="sub">Local session history of simulated readings and recommendations.</p><div class="card"><div class="actions" style="justify-content:space-between"><h3>Recent Events</h3><button class="btn ghost" id="clearLogs">Clear Logs</button></div><div class="log" id="logList">No events recorded yet.</div></div></section>
+<div class="notice"><b>SAFETY LIMITATION:</b> This is a demonstration and decision-support prototype, not a certified control system. It cannot read actual sensors or control physical equipment. Do not use it to start, stop, or operate pumps/generators. Confirm procedures, thresholds, interlocks, flood-gate logic, and emergency actions with the authorized station engineer.</div>
+</main><footer>LABASAN PUMPING STATION • OPERATIONS MANAGEMENT SYSTEM • SIMULATION PROTOTYPE</footer>
+<script>
+const el=id=>document.getElementById(id);let land=11.75,lake=12.50,pumps=Array(7).fill(true),gens=Array(4).fill(true),last=null,logs=[];
+function addLog(m){logs.unshift({t:new Date().toLocaleString(),m});renderLogs()}
+function renderLogs(){el("logList").innerHTML=logs.length?logs.map(x=>'<div class="logitem"><small>'+x.t+'</small>'+x.m+'</div>').join(""):"No events recorded yet."}
+function equipment(){el("generators").innerHTML=gens.map((v,i)=>'<div class="unit"><strong>Generator #'+(i+1)+'</strong><span class="status '+(v?"":"off")+'">'+(v?"RUNNING":"STOPPED")+'</span></div>').join("");el("pumps").innerHTML=pumps.map((v,i)=>'<div class="unit"><strong>Submersible Pump #'+(i+1)+'</strong><span class="status '+(v?"":"off")+'">'+(v?"RUNNING":"STOPPED")+'</span></div>').join("");el("pumpStat").textContent=pumps.filter(Boolean).length+" / 7";el("genStat").textContent=gens.filter(Boolean).length+" / 4"}
+function draw(){el("landStat").textContent=land.toFixed(2)+" m";el("lakeStat").textContent=lake.toFixed(2)+" m";el("landLevel").textContent=land.toFixed(2)+" m";el("lakeLevel").textContent=lake.toFixed(2)+" m";el("landBar").style.width=Math.min(100,land/15*100)+"%";el("lakeBar").style.width=Math.min(100,lake/15*100)+"%";el("landInput").value=land.toFixed(2);el("lakeInput").value=lake.toFixed(2);equipment()}
+function evaluate(){let weather=el("weather").value,gates=el("gates").value,title,detail,sp=[],sg=[];
+if(weather==="rain"){if(land<=10.50){title="Heavy downpour: 10.50 m threshold reached";detail="Reference chart indicates stopping pumps #1–#7 and shutting down generators #1–#4.";sp=[1,2,3,4,5,6,7];sg=[1,2,3,4]}else{title="Weather disturbance / heavy downpour";detail="Continue pumping until Land Side reaches 10.50 m, then stop all seven pumps and shut down all four generators."}}
+else if(land<=10.50){title="Land Side ≤ 10.50 m";detail="Stop pumps #1 and #2, then shut down Generator #1.";sp=[1,2];sg=[1]}
+else if(land<=11.20){title="Land Side ≤ 11.20 m";detail="Stop pumps #3 and #4, then shut down Generator #2.";sp=[3,4];sg=[2]}
+else if(land<=11.50){title="Land Side ≤ 11.50 m";detail="Stop pumps #5 and #6, then shut down Generator #3.";sp=[5,6];sg=[3]}
+else if(land<=11.65){title="Land Side ≤ 11.65 m";detail="Stop pump #7, then shut down Generator #4.";sp=[7];sg=[4]}
+else{title="Continue pumping";detail="Land Side is above 11.65 m. Continue monitoring and evaluate again as readings change."}
+let gateNote=gates==="open"?" Flood gates are OPEN; source chart says operate one generator, close all flood gates, then operate the other three.":" Flood gates are CLOSED.";
+el("recommendation").innerHTML="<b>"+title+"</b><br>"+detail+gateNote;el("conditionAlert").className="alert "+(weather==="rain"?"warn":"");el("conditionAlert").textContent="Evaluation completed. Verify with the authorized operator.";last={sp,sg,title};addLog("Evaluated: "+title+" | Land "+land.toFixed(2)+" m, Lake "+lake.toFixed(2)+" m.");}
+el("updateLevels").onclick=()=>{let a=Number(el("landInput").value),b=Number(el("lakeInput").value);if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<0||a>30||b>30){alert("Enter valid readings from 0 to 30 metres.");return}land=a;lake=b;draw();addLog("Readings updated: Land "+land.toFixed(2)+" m; Lake "+lake.toFixed(2)+" m.")};
+el("demoDrop").onclick=()=>{land=Math.max(0,land-.10);draw();addLog("Demo: Land Side decreased by 0.10 m.")};el("evaluate").onclick=evaluate;
+el("applyStep").onclick=()=>{if(!last){alert("Evaluate workflow first.");return}last.sp.forEach(n=>pumps[n-1]=false);last.sg.forEach(n=>gens[n-1]=false);draw();addLog("SIMULATION ONLY: applied status indicators for "+last.title)};
+el("reset").onclick=()=>{land=11.75;lake=12.50;pumps=Array(7).fill(true);gens=Array(4).fill(true);el("weather").value="clear";el("gates").value="closed";el("valves").value="open";last=null;el("recommendation").textContent="Simulation reset. Evaluate the workflow to see a recommendation.";draw();addLog("Simulation reset to reference starting values.")};
+el("clearLogs").onclick=()=>{logs=[];renderLogs()};document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));b.classList.add("active");el(b.dataset.page).classList.add("active")});
+function tick(){el("clock").textContent=new Date().toLocaleString()}tick();setInterval(tick,1000);draw();
+</script></body></html>
