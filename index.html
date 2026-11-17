@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="tl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Labasan Pumping Station Water Elevation Logbook">
+<title>Labasan P/S Water Elevation Logbook</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:10px;background:#e9edf2;color:#172033;font:14px Arial,sans-serif}
+.toolbar,.page{max-width:1600px;margin:0 auto 12px;background:#fff;border:1px solid #cbd2dc;border-radius:9px;padding:12px}
+.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap}label{font-weight:bold}
+input,select,textarea,button{font:inherit}input,select,textarea{padding:7px;border:1px solid #aab3c0;border-radius:5px}
+button{border:0;border-radius:6px;padding:9px 13px;background:#1e4f91;color:white;font-weight:bold}
+button.secondary{background:#536273}.wide{flex-basis:100%;border-top:1px solid #ccd3dd;padding-top:10px}
+#pages{display:flex;flex-direction:column;gap:14px;align-items:center}.page{width:100%;overflow-x:auto}
+table{width:100%;min-width:1050px;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #454d59;padding:0;text-align:center}
+thead th{height:24px;background:#f1f3f6;font-size:10px}th.time,td.time{width:52px}td.time{font-weight:bold;background:#f7f8fa;font-size:10px}
+td.hour{height:27px}.reading-box{height:27px;display:grid;grid-template-rows:1fr 1fr}
+.reading-box input{width:100%;height:13px;min-width:0;border:0;border-bottom:1px solid #9299a3;border-radius:0;padding:0;text-align:center;font-size:10px;background:white;color:#111;font-weight:bold}
+.reading-box input:last-child{border:0}td.remarks input{width:100%;height:26px;border:0;padding:0 2px;text-align:center;font-size:10px;background:white;color:#111;font-weight:bold}
+td.time{width:52px}.footer{display:flex;justify-content:space-between;margin-top:7px;font-size:10px;color:#586477}
+textarea{width:100%;max-width:950px}#status{display:block;margin-top:7px}
+@media print{body{padding:0;background:white}.toolbar{display:none!important}.page{border:0;box-shadow:none;break-after:page}table{min-width:0}}
+</style></head><body>
+<div class="toolbar">
+<label>Month</label><select id="month"></select><label>Year</label><input id="year" type="number" min="2000" max="2100" style="width:90px">
+<button id="print">Print / Save PDF</button><button class="secondary" id="clearMonth">Clear this month</button>
+<label>Reset specific date</label><input id="resetDate" type="date"><button class="secondary" id="resetDay">Reset selected date</button>
+<div class="wide"><strong>Copy / Paste Daily Readings</strong><br>
+<label>Target date</label> <input id="pasteDate" type="date">
+<p style="font-size:12px">I-copy ang rows mula sa Excel/Google Sheets (TIME, LAND, LAKE, REMARKS), pagkatapos i-paste dito. Maaari ring 24 rows na LAND, LAKE, REMARKS.</p>
+<textarea id="pasteData" rows="6" placeholder="TIME&#9;LAND&#9;LAKE&#9;REMARKS&#10;12MN&#9;11.80&#9;12.50&#9;FGC"></textarea><br>
+<button id="pasteImport">Paste / Fill Selected Date</button><span id="status" role="status"></span></div>
+</div><div id="pages"></div>
+<script>
+(()=>{
+const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const $=id=>document.getElementById(id),today=new Date();
+months.forEach((n,i)=>{const o=document.createElement("option");o.value=i;o.textContent=n;$("month").appendChild(o)});
+$("month").value=today.getMonth();$("year").value=today.getFullYear();
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+$("pasteDate").value=iso(today);$("resetDate").value=iso(today);
+const days=(y,m)=>new Date(y,m+1,0).getDate();
+const key=(y,m,d,h,s,t)=>"labasan-water-"+y+"-"+(m+1)+"-"+d+"-"+h+"-"+s+"-"+t;
+const timeName=h=>h===0?"12MN":h<12?h+"AM":h===12?"12NN":(h-12)+"PM";
+function render(){
+ const m=+$("month").value,y=+$("year").value||today.getFullYear(),last=days(y,m),root=$("pages");root.innerHTML="";
+ for(let first=1,pageNo=1;first<=last;first+=15,pageNo++){
+  const end=Math.min(first+14,last),section=document.createElement("section");section.className="page";
+  let html='<div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>LABASAN PUMPING STATION: WATER ELEVATION</b><span>FOR THE MONTH: '+months[m].toUpperCase()+'</span></div><table><thead><tr><th class="time"></th>';
+  for(let d=first;d<=end;d++)html+='<th colspan="2">'+d+'</th>';html+='</tr></thead><tbody>';
+  for(let h=0;h<24;h++){html+='<tr><td class="time">'+timeName(h)+'</td>';
+   for(let d=first;d<=end;d++){html+='<td class="hour"><div class="reading-box">';
+    for(let s=0;s<2;s++){const k=key(y,m,d,h,s,"level");html+='<input data-key="'+k+'" aria-label="'+months[m]+' '+d+' '+y+' '+timeName(h)+' reading '+(s+1)+'" value="'+esc(localStorage.getItem(k)||"")+'">'}
+    html+='</div></td><td class="remarks"><input data-key="'+key(y,m,d,h,0,"remarks")+'" aria-label="'+months[m]+' '+d+' '+y+' '+timeName(h)+' remarks" value="'+esc(localStorage.getItem(key(y,m,d,h,0,"remarks"))||"")+'"></td>';
+   }html+='</tr>';
+  }
+  html+='</tbody></table><div class="footer"><span>PAGE '+pageNo+' · DAYS '+first+'–'+end+'</span><span>CHECKED BY: __________________________</span></div>';
+  section.innerHTML=html;root.appendChild(section);
+ }
+ root.querySelectorAll("input[data-key]").forEach(inp=>inp.addEventListener("input",()=>localStorage.setItem(inp.dataset.key,inp.value)));
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("month").addEventListener("change",render);$("year").addEventListener("change",render);
+$("print").onclick=()=>window.print();
+function clearDate(y,m,d){for(let h=0;h<24;h++){for(let s=0;s<2;s++)localStorage.removeItem(key(y,m,d,h,s,"level"));localStorage.removeItem(key(y,m,d,h,0,"remarks"))}}
+$("resetDay").onclick=()=>{const v=$("resetDate").value;if(!v){$("status").textContent="Pumili muna ng date.";return}const [y,mm,d]=v.split("-").map(Number);if(!confirm("Burahin lahat ng entries para sa "+months[mm-1]+" "+d+", "+y+" lamang?"))return;clearDate(y,mm-1,d);$("month").value=mm-1;$("year").value=y;render();$("status").textContent="Na-reset ang "+months[mm-1]+" "+d+", "+y+". Hindi binago ang ibang dates."};
+$("clearMonth").onclick=()=>{const m=+$("month").value,y=+$("year").value||today.getFullYear();if(!confirm("Burahin lahat ng entries para sa "+months[m]+" "+y+"?"))return;for(let d=1;d<=days(y,m);d++)clearDate(y,m,d);render()};
+function toHour(t){const z=t.toUpperCase().replace(/\./g,"").replace(/\s+/g," ").trim();if(/^(12\s*(MN|AM))$/.test(z)||z==="MIDNIGHT")return 0;if(["12NN","12 NOON","12 PM","NOON"].includes(z))return 12;const a=z.match(/^(\d{1,2})\s*(AM|PM)$/);if(!a)return null;let h=+a[1];if(h<1||h>12)return null;return a[2]==="AM"?(h===12?0:h):(h===12?12:h+12)}
+$("pasteImport").onclick=()=>{
+ const v=$("pasteDate").value,raw=$("pasteData").value.trim();if(!v){$("status").textContent="Pumili muna ng target date.";return}if(!raw){$("status").textContent="I-paste muna ang readings.";return}
+ const [y,mm,d]=v.split("-").map(Number),m=mm-1,rows=[];
+ for(const line of raw.split(/\r?\n/)){let c=line.includes("\t")?line.split("\t"):line.trim().split(/\s{2,}/);c=c.map(x=>x.trim());if(!c.length||/^(TIME|ORAS)$/i.test(c[0]))continue;let h=toHour(c[0]),land,lake,remarks;if(h!==null){land=c[1]||"";lake=c[2]||"-";remarks=c.slice(3).join(" ")}else{land=c[0];lake=c[1]||"-";remarks=c.slice(2).join(" ");h=rows.length}if(!/^(?:-|\d+(?:\.\d+)?)$/.test(land))continue;if(!/^(?:-|\d+(?:\.\d+)?)$/.test(lake))lake="-";if(h>=0&&h<24)rows.push({h,land,lake,remarks})}
+ if(!rows.length){$("status").textContent="Walang valid rows. Gumamit ng columns TIME, LAND, LAKE, REMARKS.";return}
+ rows.forEach(r=>{localStorage.setItem(key(y,m,d,r.h,0,"level"),r.land);localStorage.setItem(key(y,m,d,r.h,1,"level"),r.lake);localStorage.setItem(key(y,m,d,r.h,0,"remarks"),r.remarks)});
+ $("month").value=m;$("year").value=y;render();$("status").textContent="Nailagay ang "+rows.length+" row(s) sa "+months[m]+" "+d+", "+y+". Pakisuri ang entries.";
+};
+render();
+})();
+</script></body></html>
